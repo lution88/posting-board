@@ -13,7 +13,7 @@ from postings.serializers import PostingSerializer
 
 class PostsAPI(APIView):
     def get(self, request):
-        posts = Posting.objects.all()
+        posts = Posting.objects.all().order_by("-dt_created")
         posts_serializer = PostingSerializer(posts, many=True)
         return Response(posts_serializer.data, status=status.HTTP_200_OK)
 
