@@ -37,6 +37,11 @@ class PostingSerializer(ModelSerializer):
 
     def update(self, instance, validated_data):
         for key, value in validated_data.items():
+            if key == 'password':
+                hashed_value = bcrypt.hashpw(value.encode('utf-8'), bcrypt.gensalt())
+                decoded_password = hashed_value.decode("utf-8")
+
+                value = decoded_password
             setattr(instance, key, value)
         instance.save()
 

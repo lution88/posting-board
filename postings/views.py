@@ -40,16 +40,14 @@ class PostAPI(APIView):
         post = Posting.objects.get(id=posting_id)
 
         input_password = request.data['password']
-        print(input_password, type(input_password))
         encoded_password = input_password.encode('utf-8')
-        print(encoded_password)
         encoded_db_password = post.password.encode('utf-8')
-        print(encoded_db_password)
 
         if not bcrypt.checkpw(encoded_password, encoded_db_password):
             return Response({"message": "잘못된 비밀번호 입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-        post_serializer = PostingSerializer(post, data=request.data, partial=True, context={'password': input_password})
+        post_serializer = PostingSerializer(post, data=request.data, partial=True)
+
         if post_serializer.is_valid():
             post_serializer.save()
             return Response(post_serializer.data, status=status.HTTP_200_OK)
