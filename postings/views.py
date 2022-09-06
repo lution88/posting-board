@@ -12,7 +12,8 @@ from postings.serializers import PostingSerializer
 
 
 class PostsAPI(APIView):
-    ''' POSTS 전체 API '''
+    """POSTS 전체 API"""
+
     def get(self, request):
         posts = Posting.objects.all().order_by("-dt_created")
         posts_serializer = PostingSerializer(posts, many=True)
@@ -29,7 +30,8 @@ class PostsAPI(APIView):
 
 
 class PostAPI(APIView):
-    ''' POST 단건 API '''
+    """POST 단건 API"""
+
     def get(self, request, post_id):
         post = get_object_or_404(Posting, id=post_id)
         post_serializer = PostingSerializer(post)
@@ -39,12 +41,14 @@ class PostAPI(APIView):
     def put(self, request, posting_id):
         post = Posting.objects.get(id=posting_id)
 
-        input_password = request.data['password']
-        encoded_password = input_password.encode('utf-8')
-        encoded_db_password = post.password.encode('utf-8')
+        input_password = request.data["password"]
+        encoded_password = input_password.encode("utf-8")
+        encoded_db_password = post.password.encode("utf-8")
 
         if not bcrypt.checkpw(encoded_password, encoded_db_password):
-            return Response({"message": "잘못된 비밀번호 입니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "잘못된 비밀번호 입니다."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         post_serializer = PostingSerializer(post, data=request.data, partial=True)
 
