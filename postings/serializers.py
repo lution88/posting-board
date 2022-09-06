@@ -23,7 +23,7 @@ class PostingSerializer(ModelSerializer):
         }
 
     def create(self, validated_data):
-        """포스팅 생성"""
+        """게시글 생성"""
         post = Posting(**validated_data)
         password = post.password
 
@@ -35,6 +35,7 @@ class PostingSerializer(ModelSerializer):
         return post
 
     def update(self, instance, validated_data):
+        """게시글 수정"""
         for key, value in validated_data.items():
             if key == "password":
                 hashed_value = bcrypt.hashpw(value.encode("utf-8"), bcrypt.gensalt())
