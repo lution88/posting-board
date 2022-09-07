@@ -1,24 +1,35 @@
 import os
 import bcrypt
 
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.generics import get_object_or_404
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 
 from postings.models import Posting
 from postings.serializers import PostingSerializer
+from postings.pagination import PaginationHandler
 
 
-class PostsAPI(APIView):
+class PostPagination(PageNumberPagination):
+    '''페이지네이션 기본 설정'''
+    page_size = 20
+
+
+class PostsAPI(APIView, PaginationHandler):
     """POSTS 전체 API"""
+    # 페이지네이션 클래스 설정
+    pagination_class = PostPagination
 
     def get(self, request):
         """게시글 목록 조회"""
         posts = Posting.objects.all().order_by("-dt_created")
-        posts_serializer = PostingSerializer(posts, many=True)
-        print("2. :", posts_serializer.data)
+        page = self.paginate_queryset(posts)
+        if page is not None:
+            posts_serializer = self.get_paginated_response(PostingSerializer(page, many=True).data)
+        else:
+            posts_serializer = PostingSerializer(posts, many=True)
         return Response(posts_serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
