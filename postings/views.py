@@ -1,7 +1,4 @@
-import os
-import bcrypt
-
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -10,6 +7,7 @@ from rest_framework.pagination import PageNumberPagination
 from postings.models import Posting
 from postings.serializers import PostingSerializer
 from postings.pagination import PaginationHandler
+from postings.utils import hashed_password
 
 
 class PostPagination(PageNumberPagination):
@@ -53,19 +51,19 @@ class PostAPI(APIView):
         return Response(post_serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, posting_id):
-        """게시글 수정"""
-        post = Posting.objects.get(id=posting_id)
+        """
+        게시글 수정
+        - 비밀번호 확인 후 맞다면 수정 진행.
+        """
+
+        post = get_object_or_404(Posting, id=posting_id)
 
         input_password = request.data["password"]
-        encoded_password = input_password.encode("utf-8")
-        encoded_db_password = post.password.encode("utf-8")
+        result = hashed_password(input_password, post)
+        if not result:
+            return Response({"message": "잘못된 비밀번호 입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not bcrypt.checkpw(encoded_password, encoded_db_password):
-            return Response(
-                {"message": "잘못된 비밀번호 입니다."}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        post_serializer = PostingSerializer(post, data=request.data, partial=True)
+        post_serializer = PostingSerializer(result, data=request.data, partial=True)
 
         if post_serializer.is_valid():
             post_serializer.save()
@@ -73,15 +71,17 @@ class PostAPI(APIView):
         return Response(post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, posting_id):
-        """게시글 삭제"""
-        post = Posting.objects.get(id=posting_id)
+        """
+        게시글 삭제
+        - 비밀번호 확인 후 맞다면 삭제 진행.
+        """
+
+        post = get_object_or_404(Posting, id=posting_id)
 
         input_password = request.data["password"]
-        encoded_password = input_password.encode("utf-8")
-        encoded_db_password = post.password.encode("utf-8")
-
-        if bcrypt.checkpw(encoded_password, encoded_db_password):
-            post.delete()
+        result = hashed_password(input_password, post)
+        if result:
+            result.delete()
             return Response({"message": "삭제 완료"}, status=status.HTTP_200_OK)
 
         return Response(

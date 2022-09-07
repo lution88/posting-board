@@ -5,7 +5,7 @@ def validate_no_number(value):
     ''' 비밀번호에 숫자가 포함되지 않으면 Validation Error를 일으킨다. '''
 
     if not any(chr.isdigit() for chr in value):
-        raise ValidationError("숫자가 없습니다.")
+        raise ValidationError("비밀번호에 숫자가 1개 이상 포함되어야 합니다.")
 
 
 def validate_gte_6chars(value):
